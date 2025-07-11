@@ -1,37 +1,123 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FiveM DUI Menu</title>
-  <style>
-    body {
-      margin: 0;
-      background: #111;
-      color: #0f0;
-      font-family: monospace;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+CreateThread(function()
+    local menu = {
+        x = 0.08,
+        y = 0.12,
+        width = 0.3,
+        headerHeight = 0.04,
+        buttonHeight = 0.035,
+        buttonSpacing = 0.005,
+        selected = 1,
+        open = true,
+        submenuTitle = "Wardrobe Submenu",
+        menuTitle = "Nexus",
+        buttons = {
+            {name = "Hat", type = "slider", value = 1, min = 1, max = 5},
+            {name = "Mask", type = "slider", value = 1, min = 1, max = 5},
+            {name = "Glasses", type = "slider", value = 1, min = 1, max = 5},
+            {name = "Torso", type = "slider", value = 1, min = 1, max = 5},
+            {name = "Tshirt", type = "slider", value = 1, min = 1, max = 5},
+            {name = "Pants", type = "slider", value = 1, min = 1, max = 5},
+            {name = "Shoes", type = "slider", value = 1, min = 1, max = 5},
+            {name = "Random Outfit", type = "toggle", value = false},
+            {name = "Random Outfit | Looped", type = "toggle", value = false},
+            {name = "Delay", type = "slider", value = 100, min = 10, max = 500, step = 10},
+            {name = "(Disabled) Random Ped", type = "toggle", value = false},
+        },
+        models = {"MP_M_FREEMODE_01", "MP_F_FREEMODE_01"},
+        selectedModelIndex = 1,
     }
-    .menu {
-      border: 2px solid #0f0;
-      padding: 20px;
-      border-radius: 10px;
-      background: rgba(0, 0, 0, 0.85);
-      box-shadow: 0 0 10px #0f0;
-    }
-    h1 {
-      font-size: 24px;
-      margin: 0;
-    }
-  </style>
-</head>
-<body>
-  <div class="menu">
-    <h1>✅ Menu Loaded</h1>
-    <p>Press Right Shift to toggle this menu</p>
-  </div>
-</body>
-</html>
+
+    local function drawText(text, x, y, scale, center, r, g, b, a)
+        SetTextFont(4)
+        SetTextProportional(1)
+        SetTextScale(0.0, scale)
+        SetTextCentre(center)
+        SetTextColour(r or 255, g or 255, b or 255, a or 255)
+        SetTextDropShadow(0, 0, 0, 0, 255)
+        SetTextEntry("STRING")
+        AddTextComponentString(text)
+        DrawText(x, y)
+    end
+
+    local function drawRect(x, y, width, height, r, g, b, a)
+        DrawRect(x, y, width, height, r, g, b, a)
+    end
+
+    while true do
+        Wait(0)
+        if not menu.open then goto continue end
+
+        local btnCount = #menu.buttons
+        local menuHeight = menu.headerHeight + btnCount * (menu.buttonHeight + menu.buttonSpacing)
+
+        -- Input navigation
+        if IsControlJustPressed(0, 172) then -- up
+            menu.selected = menu.selected - 1
+            if menu.selected < 1 then menu.selected = btnCount end
+        elseif IsControlJustPressed(0, 173) then -- down
+            menu.selected = menu.selected + 1
+            if menu.selected > btnCount then menu.selected = 1 end
+        elseif IsControlJustPressed(0, 191) then -- enter
+            local btn = menu.buttons[menu.selected]
+            if btn.type == "toggle" then
+                btn.value = not btn.value
+            elseif btn.type == "button" then
+                -- Add button action here
+            end
+        elseif IsControlJustPressed(0, 174) then -- left
+            local btn = menu.buttons[menu.selected]
+            if btn.type == "slider" then
+                btn.value = math.max(btn.min, btn.value - (btn.step or 1))
+            end
+        elseif IsControlJustPressed(0, 175) then -- right
+            local btn = menu.buttons[menu.selected]
+            if btn.type == "slider" then
+                btn.value = math.min(btn.max, btn.value + (btn.step or 1))
+            end
+        elseif IsControlJustPressed(0, 177) then -- backspace to close
+            menu.open = false
+        end
+
+        -- Draw background (transparent black)
+        drawRect(menu.x, menu.y + menuHeight / 2, menu.width, menuHeight, 0, 0, 0, 170)
+
+        -- Draw header bar (black with white text)
+        drawRect(menu.x, menu.y + menu.headerHeight / 2, menu.width, menu.headerHeight, 0, 0, 0, 255)
+        drawText(menu.submenuTitle, menu.x, menu.y + menu.headerHeight / 2 - 0.012, 0.45, true, 255, 255, 255, 255)
+
+        -- Draw main menu title top (purple faded background)
+        drawRect(menu.x, menu.y - 0.04, menu.width, 0.05, 120, 0, 255, 160)
+        drawText(menu.menuTitle, menu.x, menu.y - 0.04, 0.65, true, 255, 255, 255, 255)
+
+        -- Draw buttons
+        local startY = menu.y + menu.headerHeight + menu.buttonSpacing
+        for i = 1, btnCount do
+            local btn = menu.buttons[i]
+            local btnY = startY + (i - 1) * (menu.buttonHeight + menu.buttonSpacing)
+
+            -- Highlight selected
+            if i == menu.selected then
+                drawRect(menu.x, btnY + menu.buttonHeight / 2, menu.width * 0.95, menu.buttonHeight, 50, 50, 50, 180)
+            end
+
+            -- Button label on left
+            drawText(btn.name, menu.x - menu.width / 2 + 0.01, btnY, 0.40, false, 255, 255, 255, 255)
+
+            -- Button value on right (aligned)
+            local valueText = ""
+            if btn.type == "toggle" then
+                valueText = btn.value and "- ON -" or "- OFF -"
+            elseif btn.type == "slider" then
+                valueText = "- " .. tostring(btn.value) .. " -"
+            end
+            drawText(valueText, menu.x + menu.width / 2 - 0.01, btnY, 0.40, true, 180, 180, 180, 255)
+        end
+
+        -- Draw model info at bottom
+        local modelText = menu.models[menu.selectedModelIndex] or "Unknown Model"
+        drawText("Male", menu.x - menu.width / 2 + 0.01, menu.y + menuHeight + 0.02, 0.4, false, 255, 255, 255, 255)
+        drawText("- " .. modelText .. " -", menu.x + menu.width / 2 - 0.01, menu.y + menuHeight + 0.02, 0.4, true, 180, 180, 180, 255)
+
+        ::continue::
+    end
+end)
