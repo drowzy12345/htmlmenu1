@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FiveM DUI Menu</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: #0f0;
+      font-family: monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .menu {
+      border: 2px solid #0f0;
+      padding: 20px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.85);
+      box-shadow: 0 0 10px #0f0;
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="menu">
+    <h1>✅ Menu Loaded</h1>
+    <p>Press Right Shift to toggle this menu</p>
+  </div>
+</body>
+</html>
